@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Progress } from "@/components/ui/progress";
+import TextToSpeech from './TextToSpeech';
 
 interface InterviewSessionProps {
   resume: File;
@@ -48,7 +49,22 @@ const InterviewSession = ({
           "question": "What is your design process?",
           "answer": "A strong answer would include..."
         },
-        // ... (4 more similar objects)
+        {
+          "question": "How do you handle design critiques?",
+          "answer": "A strong answer would include..."
+        },
+        {
+          "question": "Can you describe a challenging design problem you've faced?",
+          "answer": "A strong answer would include..."
+        },
+        {
+          "question": "What tools do you use for design?",
+          "answer": "A strong answer would include..."
+        },
+        {
+          "question": "How do you stay updated with design trends?",
+          "answer": "A strong answer would include..."
+        }
       ]`;
       
       const result = await model.generateContent(prompt);
@@ -227,17 +243,20 @@ const InterviewSession = ({
         <h2 className="text-xl font-semibold mb-4">
           Question {currentQuestionIndex + 1} of {questions.length}
         </h2>
-        <p className="mb-4">{questions[currentQuestionIndex]?.question}</p>
-        <Textarea
-          value={userAnswer}
-          onChange={(e) => setUserAnswer(e.target.value)}
-          placeholder="Type your answer here..."
-          className="mb-4"
-          rows={6}
-        />
-        <Button onClick={handleNextQuestion}>
-          {currentQuestionIndex === questions.length - 1 ? "Finish Interview" : "Next Question"}
-        </Button>
+        <div className="space-y-4">
+          <p className="mb-4">{questions[currentQuestionIndex]?.question}</p>
+          <TextToSpeech text={questions[currentQuestionIndex]?.question} />
+          <Textarea
+            value={userAnswer}
+            onChange={(e) => setUserAnswer(e.target.value)}
+            placeholder="Type your answer here..."
+            className="mb-4"
+            rows={6}
+          />
+          <Button onClick={handleNextQuestion}>
+            {currentQuestionIndex === questions.length - 1 ? "Finish Interview" : "Next Question"}
+          </Button>
+        </div>
       </Card>
     </div>
   );
