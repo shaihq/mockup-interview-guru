@@ -40,15 +40,34 @@ const InterviewSession = ({
   const generateQuestions = async () => {
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const prompt = `As a design interviewer for the role of ${role} in the ${round} round, generate 5 relevant interview questions. Format the response as a JSON array of objects with 'question' and 'answer' properties. The questions should be specific to design principles, process, and problem-solving.`;
+      const prompt = `You are a design interviewer conducting an interview for the role of ${role} in the ${round} round. Generate exactly 5 relevant interview questions that focus on design principles, process, and problem-solving. For each question, also provide an ideal answer that would demonstrate strong design thinking. Return the response in this exact format (no markdown, just pure JSON):
+      [
+        {
+          "question": "What is your design process?",
+          "answer": "A strong answer would include..."
+        },
+        // ... (4 more similar objects)
+      ]`;
       
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
       
-      // Parse the JSON response
-      const parsedQuestions = JSON.parse(text);
-      setQuestions(parsedQuestions);
+      try {
+        const parsedQuestions = JSON.parse(text);
+        if (Array.isArray(parsedQuestions) && parsedQuestions.length === 5) {
+          setQuestions(parsedQuestions);
+        } else {
+          throw new Error("Invalid response format");
+        }
+      } catch (parseError) {
+        console.error("Parse error:", parseError);
+        toast({
+          title: "Error",
+          description: "Failed to parse interview questions. Please try again.",
+          variant: "destructive",
+        });
+      }
       setIsLoading(false);
     } catch (error) {
       console.error("Error generating questions:", error);
@@ -57,6 +76,7 @@ const InterviewSession = ({
         description: "Failed to generate interview questions. Please try again.",
         variant: "destructive",
       });
+      setIsLoading(false);
     }
   };
 
@@ -71,15 +91,18 @@ const InterviewSession = ({
     }
 
     if (currentQuestionIndex === questions.length - 1) {
-      // Generate final feedback
       try {
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const prompt = `Evaluate this design interview response and provide feedback:
+        const prompt = `As a design interviewer, evaluate this response for the role of ${role}:
           Question: ${questions[currentQuestionIndex].question}
           Candidate's Answer: ${userAnswer}
           Expected Answer: ${questions[currentQuestionIndex].answer}
           
-          Provide a score out of 100 and specific suggestions for improvement.`;
+          Provide a detailed evaluation including:
+          1. A score out of 100
+          2. What was done well
+          3. Areas for improvement
+          4. Specific suggestions to enhance the answer`;
         
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -101,15 +124,15 @@ const InterviewSession = ({
 
   if (isLoading) {
     return (
-      <div className="interview-container text-center">
-        <p>Preparing your interview questions...</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-lg">Preparing your interview questions...</p>
       </div>
     );
   }
 
   if (isFinished) {
     return (
-      <div className="interview-container">
+      <div className="max-w-3xl mx-auto p-4">
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-4">Interview Feedback</h2>
           <div className="whitespace-pre-wrap">{feedback}</div>
@@ -125,12 +148,12 @@ const InterviewSession = ({
   }
 
   return (
-    <div className="interview-container">
-      <Card className="question-card">
+    <div className="max-w-3xl mx-auto p-4">
+      <Card className="p-6">
         <h2 className="text-xl font-semibold mb-4">
           Question {currentQuestionIndex + 1} of {questions.length}
         </h2>
-        <p className="mb-4">{questions[currentQuestionIndex].question}</p>
+        <p className="mb-4">{questions[currentQuestionIndex]?.question}</p>
         <Textarea
           value={userAnswer}
           onChange={(e) => setUserAnswer(e.target.value)}
