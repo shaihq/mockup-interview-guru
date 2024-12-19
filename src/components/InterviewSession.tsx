@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Progress } from "@/components/ui/progress";
-import TextToSpeech from './TextToSpeech';
 
 interface InterviewSessionProps {
   resume: File;
@@ -245,7 +244,6 @@ const InterviewSession = ({
         </h2>
         <div className="space-y-4">
           <p className="mb-4">{questions[currentQuestionIndex]?.question}</p>
-          <TextToSpeech text={questions[currentQuestionIndex]?.question} />
           <Textarea
             value={userAnswer}
             onChange={(e) => setUserAnswer(e.target.value)}
