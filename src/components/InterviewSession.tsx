@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Progress } from "@/components/ui/progress";
+import { extractTextFromPDF, generatePersonalizedPrompt } from "@/utils/resumeAnalysis";
 
 interface InterviewSessionProps {
   resume: File;
@@ -41,30 +42,22 @@ const InterviewSession = ({
 
   const generateQuestions = async () => {
     try {
+      setIsLoading(true);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const prompt = `You are a design interviewer conducting an interview for the role of ${role} in the ${round} round. Generate exactly 5 relevant interview questions that focus on design principles, process, and problem-solving. For each question, also provide an ideal answer that would demonstrate strong design thinking. Return the response in this exact format (no markdown, just pure JSON):
-      [
-        {
-          "question": "What is your design process?",
-          "answer": "A strong answer would include..."
-        },
-        {
-          "question": "How do you handle design critiques?",
-          "answer": "A strong answer would include..."
-        },
-        {
-          "question": "Can you describe a challenging design problem you've faced?",
-          "answer": "A strong answer would include..."
-        },
-        {
-          "question": "What tools do you use for design?",
-          "answer": "A strong answer would include..."
-        },
-        {
-          "question": "How do you stay updated with design trends?",
-          "answer": "A strong answer would include..."
-        }
-      ]`;
+      
+      // Extract text from both resumes
+      const [candidateResumeText, interviewerResumeText] = await Promise.all([
+        extractTextFromPDF(resume),
+        extractTextFromPDF(interviewerResume)
+      ]);
+
+      // Generate personalized prompt
+      const prompt = generatePersonalizedPrompt(
+        candidateResumeText,
+        interviewerResumeText,
+        role,
+        round
+      );
       
       const result = await model.generateContent(prompt);
       const response = await result.response;
@@ -85,7 +78,6 @@ const InterviewSession = ({
           variant: "destructive",
         });
       }
-      setIsLoading(false);
     } catch (error) {
       console.error("Error generating questions:", error);
       toast({
@@ -93,6 +85,7 @@ const InterviewSession = ({
         description: "Failed to generate interview questions. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
