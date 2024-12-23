@@ -6,9 +6,10 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import FileUpload from "@/components/FileUpload";
 import InterviewSession from "@/components/InterviewSession";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createGeminiClient } from "@/utils/geminiConfig";
 
-const genAI = new GoogleGenerativeAI("AIzaSyAyZXZUJ5irogLkCclIE-1jKhKZKOiedUM");
+const GEMINI_API_KEY = "YOUR_API_KEY"; // Replace with your API key
+const genAI = createGeminiClient(GEMINI_API_KEY);
 
 const Index = () => {
   const [resume, setResume] = useState<File | null>(null);

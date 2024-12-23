@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Progress } from "@/components/ui/progress";
 import { extractTextFromPDF, generatePersonalizedPrompt } from "@/utils/resumeAnalysis";
+import { generateWithRetry } from "@/utils/geminiConfig";
 
 interface InterviewSessionProps {
   resume: File;
@@ -59,7 +60,7 @@ const InterviewSession = ({
         round
       );
       
-      const result = await model.generateContent(prompt);
+      const result = await generateWithRetry(model, prompt);
       const response = await result.response;
       const text = response.text();
       
@@ -80,9 +81,15 @@ const InterviewSession = ({
       }
     } catch (error) {
       console.error("Error generating questions:", error);
+      let errorMessage = "Failed to generate interview questions. Please try again.";
+      
+      if ((error as any)?.status === 429) {
+        errorMessage = "Too many requests. Please wait a moment and try again.";
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to generate interview questions. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
