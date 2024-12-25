@@ -4,8 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Progress } from "@/components/ui/progress";
 import { generateWithRetry } from "@/utils/geminiConfig";
+import DetailedFeedback from "./interview/DetailedFeedback";
 
 interface InterviewSessionProps {
   jobDescription: string;
@@ -31,7 +31,7 @@ const InterviewSession = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isFinished, setIsFinished] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [score, setScore] = useState(0);
+  const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,7 +62,6 @@ const InterviewSession = ({
       const response = await result.response;
       const text = response.text();
       
-      // Clean the response text before parsing
       const cleanedText = text.replace(/[\n\r\t]/g, ' ').trim();
       console.log("Cleaned response:", cleanedText);
       
@@ -83,15 +82,9 @@ const InterviewSession = ({
       }
     } catch (error) {
       console.error("Error generating questions:", error);
-      let errorMessage = "Failed to generate interview questions. Please try again.";
-      
-      if ((error as any)?.status === 429) {
-        errorMessage = "Too many requests. Please wait a moment and try again.";
-      }
-      
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to generate interview questions. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -109,28 +102,47 @@ const InterviewSession = ({
       return;
     }
 
+    const newUserAnswers = [...userAnswers, userAnswer];
+    setUserAnswers(newUserAnswers);
+
     if (currentQuestionIndex === questions.length - 1) {
       try {
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const prompt = `As a design interviewer, evaluate this response for the role of ${role}:
-          Question: ${questions[currentQuestionIndex].question}
-          Candidate's Answer: ${userAnswer}
-          Expected Answer: ${questions[currentQuestionIndex].answer}
-          
-          Provide a detailed evaluation in this exact JSON format:
-          {
-            "score": <number between 0-100>,
-            "strengths": ["<strength1>", "<strength2>", ...],
-            "improvements": ["<improvement1>", "<improvement2>", ...],
-            "suggestions": ["<specific suggestion1>", "<specific suggestion2>", ...],
-            "overallFeedback": "<detailed paragraph of feedback>"
-          }`;
+        const prompt = `As an interviewer for the role of ${role}, evaluate these responses:
+
+        Questions and Answers:
+        ${questions.map((q, i) => `
+          Q${i + 1}: ${q.question}
+          User's Answer: ${newUserAnswers[i]}
+          Expected Answer: ${q.answer}
+        `).join('\n')}
+
+        Provide a detailed evaluation in this exact JSON format:
+        {
+          "score": <overall score between 0-100>,
+          "strengths": ["<strength1>", "<strength2>", ...],
+          "improvements": ["<improvement1>", "<improvement2>", ...],
+          "suggestions": ["<specific suggestion1>", "<specific suggestion2>", ...],
+          "overallFeedback": "<detailed paragraph of feedback>",
+          "softSkills": {
+            "communication": <score 0-100>,
+            "confidence": <score 0-100>,
+            "problemSolving": <score 0-100>
+          },
+          "questionAnswers": [
+            {
+              "question": "<question text>",
+              "userAnswer": "<user's answer>",
+              "feedback": "<specific feedback for this answer>",
+              "score": <score 0-100>
+            }
+          ]
+        }`;
         
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const feedbackData = JSON.parse(response.text());
-        setScore(feedbackData.score);
-        setFeedback(JSON.stringify(feedbackData, null, 2));
+        const cleanedResponse = response.text().replace(/[\n\r\t]/g, ' ').trim();
+        setFeedback(cleanedResponse);
         setIsFinished(true);
       } catch (error) {
         console.error("Error generating feedback:", error);
@@ -146,12 +158,6 @@ const InterviewSession = ({
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-500";
-    if (score >= 60) return "text-orange-500";
-    return "text-red-500";
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -163,63 +169,7 @@ const InterviewSession = ({
   if (isFinished) {
     try {
       const feedbackData = JSON.parse(feedback);
-      return (
-        <div className="max-w-3xl mx-auto p-4">
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-6">Interview Feedback</h2>
-            
-            <div className="flex justify-center mb-8">
-              <div className="relative inline-flex items-center justify-center">
-                <Progress value={feedbackData.score} className="w-32 h-32 rounded-full" />
-                <span className={`absolute text-4xl font-bold ${getScoreColor(feedbackData.score)}`}>
-                  {feedbackData.score}
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-semibold text-green-600 mb-2">Strengths</h3>
-                <ul className="list-disc pl-6">
-                  {feedbackData.strengths.map((strength: string, index: number) => (
-                    <li key={index}>{strength}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold text-orange-600 mb-2">Areas for Improvement</h3>
-                <ul className="list-disc pl-6">
-                  {feedbackData.improvements.map((improvement: string, index: number) => (
-                    <li key={index}>{improvement}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold text-blue-600 mb-2">Specific Suggestions</h3>
-                <ul className="list-disc pl-6">
-                  {feedbackData.suggestions.map((suggestion: string, index: number) => (
-                    <li key={index}>{suggestion}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-xl font-semibold mb-2">Overall Feedback</h3>
-                <p className="text-gray-700">{feedbackData.overallFeedback}</p>
-              </div>
-            </div>
-
-            <Button
-              className="mt-6"
-              onClick={() => window.location.reload()}
-            >
-              Start New Interview
-            </Button>
-          </Card>
-        </div>
-      );
+      return <DetailedFeedback feedbackData={feedbackData} />;
     } catch (error) {
       return (
         <div className="max-w-3xl mx-auto p-4">
