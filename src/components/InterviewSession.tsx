@@ -43,23 +43,31 @@ const InterviewSession = ({
       setIsLoading(true);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       
-      const prompt = `As an interviewer for a ${role} position, generate 5 technical interview questions for the ${round} round.
-      The questions should be based on this job description: ${jobDescription}
+      const prompt = `You are an interviewer for a ${role} position conducting a ${round} round interview.
+      Based on this job description: "${jobDescription}"
       
-      Return the response in this exact JSON format:
+      Generate 5 relevant technical interview questions with their ideal answers.
+      
+      Format your response as a valid JSON array with exactly this structure:
       [
         {
-          "question": "Detailed interview question",
-          "answer": "What a good answer should include"
+          "question": "Question text here",
+          "answer": "Expected answer details here"
         }
-      ]`;
+      ]
+      
+      Ensure the response is properly escaped JSON without any special characters or line breaks in the strings.`;
       
       const result = await generateWithRetry(model, prompt);
       const response = await result.response;
       const text = response.text();
       
+      // Clean the response text before parsing
+      const cleanedText = text.replace(/[\n\r\t]/g, ' ').trim();
+      console.log("Cleaned response:", cleanedText);
+      
       try {
-        const parsedQuestions = JSON.parse(text);
+        const parsedQuestions = JSON.parse(cleanedText);
         if (Array.isArray(parsedQuestions) && parsedQuestions.length === 5) {
           setQuestions(parsedQuestions);
         } else {
@@ -252,7 +260,6 @@ const InterviewSession = ({
       </Card>
     </div>
   );
-
 };
 
 export default InterviewSession;
