@@ -1,23 +1,47 @@
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
+interface InterviewSummary {
+  duration: string;
+  difficulty: string;
+  type: string;
+}
+
+interface SkillAnalysis {
+  technical: string;
+  domain: string;
+  methodology: string;
+}
+
+interface SoftSkills {
+  communication: number;
+  confidence: number;
+  problemSolving: number;
+}
+
+interface QuestionAnswer {
+  question: string;
+  userAnswer: string;
+  feedback: string;
+  score: number;
+}
+
+interface Recommendations {
+  skillBased: string[];
+  resources: string[];
+  interviewTips: string[];
+}
+
 interface FeedbackData {
+  interviewSummary: InterviewSummary;
   score: number;
   strengths: string[];
   improvements: string[];
-  suggestions: string[];
+  skillAnalysis: SkillAnalysis;
+  softSkills: SoftSkills;
+  questionAnswers: QuestionAnswer[];
+  recommendations: Recommendations;
   overallFeedback: string;
-  softSkills: {
-    communication: number;
-    confidence: number;
-    problemSolving: number;
-  };
-  questionAnswers: {
-    question: string;
-    userAnswer: string;
-    feedback: string;
-    score: number;
-  }[];
 }
 
 interface DetailedFeedbackProps {
@@ -36,10 +60,28 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-6">Interview Feedback Report</h2>
         
-        {/* Overview Section */}
+        {/* Interview Summary */}
         <div className="mb-8">
-          <h3 className="text-xl font-semibold mb-4">Overview</h3>
-          <div className="flex justify-center mb-8">
+          <h3 className="text-xl font-semibold mb-4">Interview Summary</h3>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="font-medium">Duration</p>
+              <p>{feedbackData.interviewSummary.duration}</p>
+            </div>
+            <div>
+              <p className="font-medium">Difficulty</p>
+              <p>{feedbackData.interviewSummary.difficulty}</p>
+            </div>
+            <div>
+              <p className="font-medium">Type</p>
+              <p>{feedbackData.interviewSummary.type}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Overall Score */}
+        <div className="mb-8">
+          <div className="flex justify-center mb-4">
             <div className="relative inline-flex items-center justify-center">
               <Progress value={feedbackData.score} className="w-32 h-32 rounded-full" />
               <span className={`absolute text-4xl font-bold ${getScoreColor(feedbackData.score)}`}>
@@ -47,10 +89,29 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
               </span>
             </div>
           </div>
-          <p className="text-gray-700 mb-4">{feedbackData.overallFeedback}</p>
+          <p className="text-gray-700 text-center">{feedbackData.overallFeedback}</p>
         </div>
 
-        {/* Soft Skills Evaluation */}
+        {/* Skill Analysis */}
+        <div className="mb-8">
+          <h3 className="text-xl font-semibold mb-4">Skill Analysis</h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium">Technical Skills</h4>
+              <p className="text-gray-700">{feedbackData.skillAnalysis.technical}</p>
+            </div>
+            <div>
+              <h4 className="font-medium">Domain Knowledge</h4>
+              <p className="text-gray-700">{feedbackData.skillAnalysis.domain}</p>
+            </div>
+            <div>
+              <h4 className="font-medium">Methodology</h4>
+              <p className="text-gray-700">{feedbackData.skillAnalysis.methodology}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Soft Skills */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Soft Skills Evaluation</h3>
           <div className="space-y-4">
@@ -89,7 +150,7 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
           </div>
         </div>
 
-        {/* Question-Answer Breakdown */}
+        {/* Question Analysis */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold mb-4">Detailed Question Analysis</h3>
           {feedbackData.questionAnswers.map((qa, index) => (
@@ -107,14 +168,32 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
           ))}
         </div>
 
-        {/* Improvement Suggestions */}
-        <div>
-          <h3 className="text-xl font-semibold text-blue-600 mb-4">Recommendations</h3>
-          <ul className="list-disc pl-6">
-            {feedbackData.suggestions.map((suggestion, index) => (
-              <li key={index}>{suggestion}</li>
-            ))}
-          </ul>
+        {/* Recommendations */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <div>
+            <h3 className="text-xl font-semibold text-blue-600 mb-4">Skill Recommendations</h3>
+            <ul className="list-disc pl-6">
+              {feedbackData.recommendations.skillBased.map((rec, index) => (
+                <li key={index}>{rec}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-blue-600 mb-4">Resources</h3>
+            <ul className="list-disc pl-6">
+              {feedbackData.recommendations.resources.map((resource, index) => (
+                <li key={index}>{resource}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-blue-600 mb-4">Interview Tips</h3>
+            <ul className="list-disc pl-6">
+              {feedbackData.recommendations.interviewTips.map((tip, index) => (
+                <li key={index}>{tip}</li>
+              ))}
+            </ul>
+          </div>
         </div>
       </Card>
     </div>

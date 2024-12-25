@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateWithRetry } from "@/utils/geminiConfig";
 import DetailedFeedback from "./interview/DetailedFeedback";
+import { generateFeedbackPrompt } from "./interview/feedbackPrompt";
+import { handleFeedbackGeneration } from "./interview/feedbackHandler";
 
 interface InterviewSessionProps {
   jobDescription: string;
@@ -107,42 +109,13 @@ const InterviewSession = ({
 
     if (currentQuestionIndex === questions.length - 1) {
       try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const prompt = `As an interviewer for the role of ${role}, evaluate these responses:
-
-        Questions and Answers:
-        ${questions.map((q, i) => `
-          Q${i + 1}: ${q.question}
-          User's Answer: ${newUserAnswers[i]}
-          Expected Answer: ${q.answer}
-        `).join('\n')}
-
-        Provide a detailed evaluation in this exact JSON format:
-        {
-          "score": <overall score between 0-100>,
-          "strengths": ["<strength1>", "<strength2>", ...],
-          "improvements": ["<improvement1>", "<improvement2>", ...],
-          "suggestions": ["<specific suggestion1>", "<specific suggestion2>", ...],
-          "overallFeedback": "<detailed paragraph of feedback>",
-          "softSkills": {
-            "communication": <score 0-100>,
-            "confidence": <score 0-100>,
-            "problemSolving": <score 0-100>
-          },
-          "questionAnswers": [
-            {
-              "question": "<question text>",
-              "userAnswer": "<user's answer>",
-              "feedback": "<specific feedback for this answer>",
-              "score": <score 0-100>
-            }
-          ]
-        }`;
-        
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const cleanedResponse = response.text().replace(/[\n\r\t]/g, ' ').trim();
-        setFeedback(cleanedResponse);
+        const feedbackResult = await handleFeedbackGeneration(
+          role,
+          questions,
+          newUserAnswers,
+          genAI
+        );
+        setFeedback(feedbackResult);
         setIsFinished(true);
       } catch (error) {
         console.error("Error generating feedback:", error);
@@ -171,6 +144,7 @@ const InterviewSession = ({
       const feedbackData = JSON.parse(feedback);
       return <DetailedFeedback feedbackData={feedbackData} />;
     } catch (error) {
+      console.error("Feedback parse error:", error);
       return (
         <div className="max-w-3xl mx-auto p-4">
           <Card className="p-6">
