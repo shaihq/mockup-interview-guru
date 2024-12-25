@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import FileUpload from "@/components/FileUpload";
 import InterviewSession from "@/components/InterviewSession";
-import ApiKeyInput from "@/components/ApiKeyInput";
 import { createGeminiClient } from "@/utils/geminiConfig";
+
+const GEMINI_API_KEY = "AIzaSyAyZXZUJ5irogLkCclIE-1jKhKZKOiedUM";
 
 const Index = () => {
   const [resume, setResume] = useState<File | null>(null);
@@ -15,12 +16,7 @@ const Index = () => {
   const [role, setRole] = useState("");
   const [round, setRound] = useState("");
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem("gemini_api_key") || "");
   const { toast } = useToast();
-
-  const handleApiKeySubmit = (newApiKey: string) => {
-    setApiKey(newApiKey);
-  };
 
   const handleStartInterview = () => {
     if (!resume || !interviewerResume || !role || !round) {
@@ -31,20 +27,8 @@ const Index = () => {
       });
       return;
     }
-    if (!apiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please enter your Gemini API key before starting the interview.",
-        variant: "destructive",
-      });
-      return;
-    }
     setIsInterviewStarted(true);
   };
-
-  if (!apiKey) {
-    return <ApiKeyInput onSubmit={handleApiKeySubmit} />;
-  }
 
   if (isInterviewStarted) {
     return (
@@ -53,7 +37,7 @@ const Index = () => {
         interviewerResume={interviewerResume}
         role={role}
         round={round}
-        genAI={createGeminiClient(apiKey)}
+        genAI={createGeminiClient(GEMINI_API_KEY)}
       />
     );
   }
