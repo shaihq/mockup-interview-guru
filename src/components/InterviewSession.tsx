@@ -5,12 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Progress } from "@/components/ui/progress";
-import { extractTextFromPDF, generatePersonalizedPrompt } from "@/utils/resumeAnalysis";
 import { generateWithRetry } from "@/utils/geminiConfig";
 
 interface InterviewSessionProps {
-  resume: File;
-  interviewerResume: File;
+  jobDescription: string;
   role: string;
   round: string;
   genAI: GoogleGenerativeAI;
@@ -22,8 +20,7 @@ interface Question {
 }
 
 const InterviewSession = ({
-  resume,
-  interviewerResume,
+  jobDescription,
   role,
   round,
   genAI,
@@ -46,19 +43,16 @@ const InterviewSession = ({
       setIsLoading(true);
       const model = genAI.getGenerativeModel({ model: "gemini-pro" });
       
-      // Extract text from both resumes
-      const [candidateResumeText, interviewerResumeText] = await Promise.all([
-        extractTextFromPDF(resume),
-        extractTextFromPDF(interviewerResume)
-      ]);
-
-      // Generate personalized prompt
-      const prompt = generatePersonalizedPrompt(
-        candidateResumeText,
-        interviewerResumeText,
-        role,
-        round
-      );
+      const prompt = `As an interviewer for a ${role} position, generate 5 technical interview questions for the ${round} round.
+      The questions should be based on this job description: ${jobDescription}
+      
+      Return the response in this exact JSON format:
+      [
+        {
+          "question": "Detailed interview question",
+          "answer": "What a good answer should include"
+        }
+      ]`;
       
       const result = await generateWithRetry(model, prompt);
       const response = await result.response;
@@ -258,6 +252,7 @@ const InterviewSession = ({
       </Card>
     </div>
   );
+
 };
 
 export default InterviewSession;

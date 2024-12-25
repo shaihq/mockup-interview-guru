@@ -1,25 +1,24 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import FileUpload from "@/components/FileUpload";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 import InterviewSession from "@/components/InterviewSession";
 import { createGeminiClient } from "@/utils/geminiConfig";
 
 const GEMINI_API_KEY = "AIzaSyAyZXZUJ5irogLkCclIE-1jKhKZKOiedUM";
 
 const Index = () => {
-  const [resume, setResume] = useState<File | null>(null);
-  const [interviewerResume, setInterviewerResume] = useState<File | null>(null);
   const [role, setRole] = useState("");
   const [round, setRound] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
   const { toast } = useToast();
 
   const handleStartInterview = () => {
-    if (!resume || !interviewerResume || !role || !round) {
+    if (!role || !round || !jobDescription) {
       toast({
         title: "Missing Information",
         description: "Please fill in all fields before starting the interview.",
@@ -33,8 +32,7 @@ const Index = () => {
   if (isInterviewStarted) {
     return (
       <InterviewSession
-        resume={resume}
-        interviewerResume={interviewerResume}
+        jobDescription={jobDescription}
         role={role}
         round={round}
         genAI={createGeminiClient(GEMINI_API_KEY)}
@@ -43,29 +41,11 @@ const Index = () => {
   }
 
   return (
-    <div className="interview-container">
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Card className="p-6">
         <h1 className="text-3xl font-bold text-center mb-8">Design Mock Interview Portal</h1>
         
         <div className="space-y-6">
-          <div>
-            <Label>Your Resume (PDF)</Label>
-            <FileUpload
-              accept=".pdf"
-              onChange={(file) => setResume(file)}
-              label="Upload your resume"
-            />
-          </div>
-
-          <div>
-            <Label>Interviewer's Resume (PDF)</Label>
-            <FileUpload
-              accept=".pdf"
-              onChange={(file) => setInterviewerResume(file)}
-              label="Upload interviewer's resume"
-            />
-          </div>
-
           <div>
             <Label htmlFor="role">Role you're applying for</Label>
             <Input
@@ -83,6 +63,17 @@ const Index = () => {
               placeholder="e.g. Design Challenge, Portfolio Review"
               value={round}
               onChange={(e) => setRound(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="jd">Job Description</Label>
+            <Textarea
+              id="jd"
+              placeholder="Paste the job description here..."
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              className="min-h-[200px]"
             />
           </div>
 
