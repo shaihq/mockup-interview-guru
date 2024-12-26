@@ -10,6 +10,7 @@ interface QuestionDisplayProps {
   userAnswer: string;
   onAnswerChange: (answer: string) => void;
   onNext: () => void;
+  isGeneratingFeedback?: boolean;
 }
 
 const MAX_CHAR_LIMIT = 500;
@@ -36,6 +37,7 @@ const QuestionDisplay = ({
   userAnswer,
   onAnswerChange,
   onNext,
+  isGeneratingFeedback = false,
 }: QuestionDisplayProps) => {
   const [tip, setTip] = useState("");
 
@@ -74,8 +76,21 @@ const QuestionDisplay = ({
               <p>💡 Tip: {tip}</p>
             </div>
           </div>
-          <Button onClick={onNext}>
-            {questionNumber === totalQuestions ? "Finish Interview" : "Next Question"}
+          <Button onClick={onNext} disabled={isGeneratingFeedback}>
+            {questionNumber === totalQuestions ? (
+              <>
+                {isGeneratingFeedback ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Generating Report...
+                  </>
+                ) : (
+                  "Finish Interview"
+                )}
+              </>
+            ) : (
+              "Next Question"
+            )}
           </Button>
         </div>
       </Card>

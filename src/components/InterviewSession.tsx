@@ -32,13 +32,18 @@ const InterviewSession = ({
   const [isFinished, setIsFinished] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const initializeQuestions = async () => {
       try {
         setIsLoading(true);
-        const generatedQuestions = await generateInterviewQuestions(genAI, jobDescription, role);
+        const generatedQuestions = await generateInterviewQuestions(
+          genAI,
+          jobDescription,
+          role
+        );
         setQuestions(generatedQuestions);
       } catch (error) {
         console.error("Error generating questions:", error);
@@ -70,6 +75,7 @@ const InterviewSession = ({
 
     if (currentQuestionIndex === questions.length - 1) {
       try {
+        setIsGeneratingFeedback(true);
         const feedbackResult = await handleFeedbackGeneration(
           role,
           questions,
@@ -85,6 +91,8 @@ const InterviewSession = ({
           description: "Failed to generate feedback. Please try again.",
           variant: "destructive",
         });
+      } finally {
+        setIsGeneratingFeedback(false);
       }
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -105,8 +113,13 @@ const InterviewSession = ({
       return (
         <div className="max-w-3xl mx-auto p-4">
           <div className="p-6 bg-red-50 rounded-lg">
-            <h2 className="text-2xl font-bold mb-4 text-red-700">Error Processing Feedback</h2>
-            <p className="text-red-600">There was an error processing the interview feedback. Please try again.</p>
+            <h2 className="text-2xl font-bold mb-4 text-red-700">
+              Error Processing Feedback
+            </h2>
+            <p className="text-red-600">
+              There was an error processing the interview feedback. Please try
+              again.
+            </p>
             <button
               className="mt-6 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               onClick={() => window.location.reload()}
@@ -127,6 +140,7 @@ const InterviewSession = ({
       userAnswer={userAnswer}
       onAnswerChange={setUserAnswer}
       onNext={handleNextQuestion}
+      isGeneratingFeedback={isGeneratingFeedback}
     />
   );
 };
