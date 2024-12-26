@@ -49,35 +49,41 @@ const InterviewSession = ({
       Based on this job description: "${jobDescription}"
       
       Generate 5 relevant technical interview questions with their ideal answers.
-      
-      Format your response as a valid JSON array with exactly this structure, ensuring proper JSON escaping:
-      [
-        {
-          "question": "Question text here",
-          "answer": "Expected answer details here"
-        }
-      ]`;
+      Format the response as a JSON array with this exact structure:
+      [{"question": "First question here", "answer": "First answer here"},{"question": "Second question here", "answer": "Second answer here"}]`;
       
       const result = await generateWithRetry(model, prompt);
       const response = await result.response;
       const text = response.text();
       
-      // Clean and validate the response
-      const cleanedText = text
+      // Extract JSON array from response
+      const jsonMatch = text.match(/\[.*\]/s);
+      if (!jsonMatch) {
+        throw new Error("No valid JSON array found in response");
+      }
+      
+      // Clean the matched JSON string
+      const cleanedText = jsonMatch[0]
         .replace(/[\n\r\t]/g, ' ')
-        .replace(/\\/g, '\\\\')
-        .replace(/"/g, '\\"')
-        .replace(/^[^[]*(\[.*\])[^]*$/, '$1')
+        .replace(/,\s*]/g, ']')
+        .replace(/\s+/g, ' ')
         .trim();
       
       console.log("Cleaned response:", cleanedText);
       
       try {
         const parsedQuestions = JSON.parse(cleanedText);
-        if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
-          // Validate question structure
+        if (Array.isArray(parsedQuestions)) {
+          // Validate and filter questions
           const validQuestions = parsedQuestions
-            .filter(q => q.question && q.answer)
+            .filter(q => 
+              typeof q === 'object' && 
+              q !== null && 
+              typeof q.question === 'string' && 
+              typeof q.answer === 'string' &&
+              q.question.trim() !== '' && 
+              q.answer.trim() !== ''
+            )
             .slice(0, 5);
           
           if (validQuestions.length > 0) {
@@ -86,23 +92,23 @@ const InterviewSession = ({
             throw new Error("No valid questions found in response");
           }
         } else {
-          throw new Error("Invalid response format");
+          throw new Error("Response is not an array");
         }
       } catch (parseError) {
         console.error("Parse error:", parseError);
         toast({
           title: "Error",
-          description: "Failed to parse interview questions. Retrying...",
+          description: "Failed to parse questions. Retrying...",
           variant: "destructive",
         });
-        // Retry generation after a short delay
-        setTimeout(generateQuestions, 1000);
+        // Retry after a short delay
+        setTimeout(generateQuestions, 1500);
       }
     } catch (error) {
       console.error("Error generating questions:", error);
       toast({
         title: "Error",
-        description: "Failed to generate interview questions. Please try again.",
+        description: "Failed to generate questions. Please try again.",
         variant: "destructive",
       });
     } finally {
