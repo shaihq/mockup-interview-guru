@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { generateWithRetry } from "@/utils/geminiConfig";
 import DetailedFeedback from "./interview/DetailedFeedback";
-import { generateFeedbackPrompt } from "./interview/feedbackPrompt";
 import { handleFeedbackGeneration } from "./interview/feedbackHandler";
+import QuestionDisplay from "./interview/QuestionDisplay";
+import LoadingState from "./interview/LoadingState";
+import { generateInterviewQuestions } from "@/utils/questionGenerator";
 
 interface InterviewSessionProps {
   jobDescription: string;
@@ -37,84 +35,25 @@ const InterviewSession = ({
   const { toast } = useToast();
 
   useEffect(() => {
-    generateQuestions();
-  }, []);
-
-  const generateQuestions = async () => {
-    try {
-      setIsLoading(true);
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      
-      const prompt = `You are an interviewer for a ${role} position conducting a ${round} round interview.
-      Based on this job description: "${jobDescription}"
-      
-      Generate 5 relevant technical interview questions with their ideal answers.
-      Format the response as a JSON array with this exact structure:
-      [{"question": "First question here", "answer": "First answer here"},{"question": "Second question here", "answer": "Second answer here"}]`;
-      
-      const result = await generateWithRetry(model, prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      // Extract JSON array from response
-      const jsonMatch = text.match(/\[.*\]/s);
-      if (!jsonMatch) {
-        throw new Error("No valid JSON array found in response");
-      }
-      
-      // Clean the matched JSON string
-      const cleanedText = jsonMatch[0]
-        .replace(/[\n\r\t]/g, ' ')
-        .replace(/,\s*]/g, ']')
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      console.log("Cleaned response:", cleanedText);
-      
+    const initializeQuestions = async () => {
       try {
-        const parsedQuestions = JSON.parse(cleanedText);
-        if (Array.isArray(parsedQuestions)) {
-          // Validate and filter questions
-          const validQuestions = parsedQuestions
-            .filter(q => 
-              typeof q === 'object' && 
-              q !== null && 
-              typeof q.question === 'string' && 
-              typeof q.answer === 'string' &&
-              q.question.trim() !== '' && 
-              q.answer.trim() !== ''
-            )
-            .slice(0, 5);
-          
-          if (validQuestions.length > 0) {
-            setQuestions(validQuestions);
-          } else {
-            throw new Error("No valid questions found in response");
-          }
-        } else {
-          throw new Error("Response is not an array");
-        }
-      } catch (parseError) {
-        console.error("Parse error:", parseError);
+        setIsLoading(true);
+        const generatedQuestions = await generateInterviewQuestions(genAI, jobDescription, role);
+        setQuestions(generatedQuestions);
+      } catch (error) {
+        console.error("Error generating questions:", error);
         toast({
           title: "Error",
-          description: "Failed to parse questions. Retrying...",
+          description: "Failed to generate questions. Please try again.",
           variant: "destructive",
         });
-        // Retry after a short delay
-        setTimeout(generateQuestions, 1500);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error generating questions:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate questions. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    initializeQuestions();
+  }, []);
 
   const handleNextQuestion = async () => {
     if (!userAnswer.trim()) {
@@ -154,11 +93,7 @@ const InterviewSession = ({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-lg">Preparing your interview questions...</p>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (isFinished) {
@@ -169,42 +104,30 @@ const InterviewSession = ({
       console.error("Feedback parse error:", error);
       return (
         <div className="max-w-3xl mx-auto p-4">
-          <Card className="p-6">
-            <h2 className="text-2xl font-bold mb-4">Error Processing Feedback</h2>
-            <p>There was an error processing the interview feedback. Please try again.</p>
-            <Button
-              className="mt-6"
+          <div className="p-6 bg-red-50 rounded-lg">
+            <h2 className="text-2xl font-bold mb-4 text-red-700">Error Processing Feedback</h2>
+            <p className="text-red-600">There was an error processing the interview feedback. Please try again.</p>
+            <button
+              className="mt-6 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               onClick={() => window.location.reload()}
             >
               Start New Interview
-            </Button>
-          </Card>
+            </button>
+          </div>
         </div>
       );
     }
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-4">
-          Question {currentQuestionIndex + 1} of {questions.length}
-        </h2>
-        <div className="space-y-4">
-          <p className="mb-4">{questions[currentQuestionIndex]?.question}</p>
-          <Textarea
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
-            placeholder="Type your answer here..."
-            className="mb-4"
-            rows={6}
-          />
-          <Button onClick={handleNextQuestion}>
-            {currentQuestionIndex === questions.length - 1 ? "Finish Interview" : "Next Question"}
-          </Button>
-        </div>
-      </Card>
-    </div>
+    <QuestionDisplay
+      currentQuestion={questions[currentQuestionIndex]?.question}
+      questionNumber={currentQuestionIndex + 1}
+      totalQuestions={questions.length}
+      userAnswer={userAnswer}
+      onAnswerChange={setUserAnswer}
+      onNext={handleNextQuestion}
+    />
   );
 };
 
