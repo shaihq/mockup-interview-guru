@@ -15,15 +15,17 @@ interface QuestionDisplayProps {
 
 const MAX_CHAR_LIMIT = 500;
 
-const generateTip = (question: string) => {
-  // Simple rule-based tip generation based on question keywords
-  if (question.toLowerCase().includes("design system")) {
+const generateTip = (question: string | undefined) => {
+  if (!question) return "Context → Approach → Solution → Impact → Learnings";
+  
+  const questionLower = question.toLowerCase();
+  if (questionLower.includes("design system")) {
     return "Research → Analysis → Components → Implementation → Testing";
-  } else if (question.toLowerCase().includes("user research")) {
+  } else if (questionLower.includes("user research")) {
     return "Problem → Methods → Participants → Findings → Actions";
-  } else if (question.toLowerCase().includes("workflow")) {
+  } else if (questionLower.includes("workflow")) {
     return "Current State → Pain Points → Solutions → Validation → Impact";
-  } else if (question.toLowerCase().includes("challenge")) {
+  } else if (questionLower.includes("challenge")) {
     return "Context → Problem → Approach → Solution → Results";
   } else {
     return "Context → Approach → Solution → Impact → Learnings";
@@ -61,7 +63,7 @@ const QuestionDisplay = ({
           Question {questionNumber} of {totalQuestions}
         </h2>
         <div className="space-y-4">
-          <p className="mb-4">{currentQuestion}</p>
+          <p className="mb-4">{currentQuestion || "Loading question..."}</p>
           <div className="space-y-2">
             <Textarea
               value={userAnswer}
