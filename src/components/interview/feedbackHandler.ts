@@ -15,6 +15,10 @@ export const handleFeedbackGeneration = async (
     const response = await result.response;
     const text = response.text();
     
+    if (!text) {
+      throw new Error("Empty response received from the API");
+    }
+
     // Find the JSON object in the response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
@@ -25,6 +29,7 @@ export const handleFeedbackGeneration = async (
       .replace(/[\n\r\t]/g, ' ')
       .replace(/,\s*}/g, '}')
       .replace(/,\s*]/g, ']')
+      .replace(/:\s*,/g, ': null,') // Handle empty values
       .trim();
     
     // Validate JSON structure
@@ -32,6 +37,9 @@ export const handleFeedbackGeneration = async (
     return cleanedResponse;
   } catch (error) {
     console.error("Error in feedback generation:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate valid feedback: ${error.message}`);
+    }
     throw new Error("Failed to generate valid feedback");
   }
 };
