@@ -11,6 +11,8 @@ interface QuestionDisplayProps {
   onNext: () => void;
 }
 
+const MAX_CHAR_LIMIT = 500; // Reasonable limit for API processing
+
 const QuestionDisplay = ({
   currentQuestion,
   questionNumber,
@@ -19,6 +21,15 @@ const QuestionDisplay = ({
   onAnswerChange,
   onNext,
 }: QuestionDisplayProps) => {
+  const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    if (text.length <= MAX_CHAR_LIMIT) {
+      onAnswerChange(text);
+    }
+  };
+
+  const remainingChars = MAX_CHAR_LIMIT - userAnswer.length;
+
   return (
     <div className="max-w-3xl mx-auto p-4">
       <Card className="p-6">
@@ -27,13 +38,20 @@ const QuestionDisplay = ({
         </h2>
         <div className="space-y-4">
           <p className="mb-4">{currentQuestion}</p>
-          <Textarea
-            value={userAnswer}
-            onChange={(e) => onAnswerChange(e.target.value)}
-            placeholder="Type your answer here..."
-            className="mb-4"
-            rows={6}
-          />
+          <div className="space-y-2">
+            <Textarea
+              value={userAnswer}
+              onChange={handleAnswerChange}
+              placeholder="Type your answer here..."
+              className="mb-2"
+              rows={6}
+              maxLength={MAX_CHAR_LIMIT}
+            />
+            <div className="flex justify-between text-sm text-gray-500">
+              <p>Characters remaining: {remainingChars}</p>
+              <p>💡 Tip: Focus on providing a clear, concise framework or methodology in your answer</p>
+            </div>
+          </div>
           <Button onClick={onNext}>
             {questionNumber === totalQuestions ? "Finish Interview" : "Next Question"}
           </Button>

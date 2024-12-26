@@ -13,7 +13,19 @@ export const handleFeedbackGeneration = async (
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const cleanedResponse = response.text().replace(/[\n\r\t]/g, ' ').trim();
+    const text = response.text();
+    
+    // Find the JSON object in the response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("No valid JSON found in response");
+    }
+
+    const cleanedResponse = jsonMatch[0]
+      .replace(/[\n\r\t]/g, ' ')
+      .replace(/,\s*}/g, '}')
+      .replace(/,\s*]/g, ']')
+      .trim();
     
     // Validate JSON structure
     JSON.parse(cleanedResponse); // This will throw if invalid
