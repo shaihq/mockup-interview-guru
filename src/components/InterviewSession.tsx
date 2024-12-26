@@ -50,27 +50,41 @@ const InterviewSession = ({
       
       Generate 5 relevant technical interview questions with their ideal answers.
       
-      Format your response as a valid JSON array with exactly this structure:
+      Format your response as a valid JSON array with exactly this structure, ensuring proper JSON escaping:
       [
         {
           "question": "Question text here",
           "answer": "Expected answer details here"
         }
-      ]
-      
-      Ensure the response is properly escaped JSON without any special characters or line breaks in the strings.`;
+      ]`;
       
       const result = await generateWithRetry(model, prompt);
       const response = await result.response;
       const text = response.text();
       
-      const cleanedText = text.replace(/[\n\r\t]/g, ' ').trim();
+      // Clean and validate the response
+      const cleanedText = text
+        .replace(/[\n\r\t]/g, ' ')
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/^[^[]*(\[.*\])[^]*$/, '$1')
+        .trim();
+      
       console.log("Cleaned response:", cleanedText);
       
       try {
         const parsedQuestions = JSON.parse(cleanedText);
-        if (Array.isArray(parsedQuestions) && parsedQuestions.length === 5) {
-          setQuestions(parsedQuestions);
+        if (Array.isArray(parsedQuestions) && parsedQuestions.length > 0) {
+          // Validate question structure
+          const validQuestions = parsedQuestions
+            .filter(q => q.question && q.answer)
+            .slice(0, 5);
+          
+          if (validQuestions.length > 0) {
+            setQuestions(validQuestions);
+          } else {
+            throw new Error("No valid questions found in response");
+          }
         } else {
           throw new Error("Invalid response format");
         }
@@ -78,9 +92,11 @@ const InterviewSession = ({
         console.error("Parse error:", parseError);
         toast({
           title: "Error",
-          description: "Failed to parse interview questions. Please try again.",
+          description: "Failed to parse interview questions. Retrying...",
           variant: "destructive",
         });
+        // Retry generation after a short delay
+        setTimeout(generateQuestions, 1000);
       }
     } catch (error) {
       console.error("Error generating questions:", error);
