@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +12,22 @@ interface QuestionDisplayProps {
   onNext: () => void;
 }
 
-const MAX_CHAR_LIMIT = 500; // Reasonable limit for API processing
+const MAX_CHAR_LIMIT = 500;
+
+const generateTip = (question: string) => {
+  // Simple rule-based tip generation based on question keywords
+  if (question.toLowerCase().includes("design system")) {
+    return "Research → Analysis → Components → Implementation → Testing";
+  } else if (question.toLowerCase().includes("user research")) {
+    return "Problem → Methods → Participants → Findings → Actions";
+  } else if (question.toLowerCase().includes("workflow")) {
+    return "Current State → Pain Points → Solutions → Validation → Impact";
+  } else if (question.toLowerCase().includes("challenge")) {
+    return "Context → Problem → Approach → Solution → Results";
+  } else {
+    return "Context → Approach → Solution → Impact → Learnings";
+  }
+};
 
 const QuestionDisplay = ({
   currentQuestion,
@@ -21,6 +37,12 @@ const QuestionDisplay = ({
   onAnswerChange,
   onNext,
 }: QuestionDisplayProps) => {
+  const [tip, setTip] = useState("");
+
+  useEffect(() => {
+    setTip(generateTip(currentQuestion));
+  }, [currentQuestion]);
+
   const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     if (text.length <= MAX_CHAR_LIMIT) {
@@ -49,7 +71,7 @@ const QuestionDisplay = ({
             />
             <div className="flex justify-between text-sm text-gray-500">
               <p>Characters remaining: {remainingChars}</p>
-              <p>💡 Tip: Focus on providing a clear, concise framework or methodology in your answer</p>
+              <p>💡 Tip: {tip}</p>
             </div>
           </div>
           <Button onClick={onNext}>
