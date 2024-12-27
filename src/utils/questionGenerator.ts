@@ -9,27 +9,16 @@ interface Question {
 export const generateInterviewQuestions = async (
   genAI: GoogleGenerativeAI,
   jobDescription: string,
-  role: string,
-  difficulty: string = "intermediate"
+  role: string
 ): Promise<Question[]> => {
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
   
   const prompt = `You are an interviewer for a ${role} position.
   Based on this job description: "${jobDescription}"
   
-  Generate 5 ${difficulty}-level technical interview questions with their ideal answers.
-  The questions should be appropriate for a ${difficulty} level candidate.
-  
+  Generate 5 relevant technical interview questions with their ideal answers.
   Format the response as a JSON array with this exact structure:
-  [{"question": "First question here", "answer": "First answer here"},{"question": "Second question here", "answer": "Second answer here"}]
-  
-  Consider these difficulty levels:
-  - basic: Entry-level questions focusing on fundamental concepts
-  - intermediate: Mid-level questions requiring practical experience
-  - advanced: Senior-level questions involving complex scenarios
-  - expert: Lead-level questions covering system design and leadership
-  
-  Make sure the questions match the specified difficulty level (${difficulty}).`;
+  [{"question": "First question here", "answer": "First answer here"},{"question": "Second question here", "answer": "Second answer here"}]`;
   
   const result = await generateWithRetry(model, prompt);
   const response = await result.response;
