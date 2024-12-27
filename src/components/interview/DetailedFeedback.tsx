@@ -36,7 +36,7 @@ interface QuestionAnswer {
   score: number;
 }
 
-interface Recommendations {
+interface RecommendationsData {
   skillBased: string[];
   resources: string[];
   interviewTips: string[];
@@ -50,7 +50,7 @@ interface FeedbackData {
   skillAnalysis: SkillAnalysis;
   softSkills: SoftSkills;
   questionAnswers: QuestionAnswer[];
-  recommendations: Recommendations;
+  recommendations: RecommendationsData;
   overallFeedback: string;
 }
 
