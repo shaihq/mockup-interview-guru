@@ -12,8 +12,6 @@ interface InterviewSessionProps {
   role: string;
   round: string;
   genAI: GoogleGenerativeAI;
-  questionCount: number;
-  difficulty: string;
 }
 
 interface Question {
@@ -26,8 +24,6 @@ const InterviewSession = ({
   role,
   round,
   genAI,
-  questionCount,
-  difficulty,
 }: InterviewSessionProps) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -46,9 +42,7 @@ const InterviewSession = ({
         const generatedQuestions = await generateInterviewQuestions(
           genAI,
           jobDescription,
-          role,
-          questionCount,
-          difficulty
+          role
         );
         setQuestions(generatedQuestions);
       } catch (error) {

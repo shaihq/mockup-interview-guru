@@ -7,13 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import InterviewSession from "@/components/InterviewSession";
 import { createGeminiClient } from "@/utils/geminiConfig";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 const GEMINI_API_KEY = "AIzaSyAyZXZUJ5irogLkCclIE-1jKhKZKOiedUM";
 
@@ -22,8 +15,6 @@ const Index = () => {
   const [round, setRound] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
-  const [questionCount, setQuestionCount] = useState("5");
-  const [difficulty, setDifficulty] = useState("intermediate");
   const { toast } = useToast();
 
   const handleStartInterview = () => {
@@ -45,8 +36,6 @@ const Index = () => {
         role={role}
         round={round}
         genAI={createGeminiClient(GEMINI_API_KEY)}
-        questionCount={parseInt(questionCount)}
-        difficulty={difficulty}
       />
     );
   }
@@ -75,36 +64,6 @@ const Index = () => {
               value={round}
               onChange={(e) => setRound(e.target.value)}
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="questionCount">Number of Questions</Label>
-              <Select value={questionCount} onValueChange={setQuestionCount}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select question count" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 Questions</SelectItem>
-                  <SelectItem value="7">7 Questions</SelectItem>
-                  <SelectItem value="10">10 Questions</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="difficulty">Difficulty Level</Label>
-              <Select value={difficulty} onValueChange={setDifficulty}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div>
