@@ -3,7 +3,7 @@ export const generateFeedbackPrompt = (
   questions: { question: string; answer: string }[],
   userAnswers: string[]
 ) => {
-  return `As an interviewer for the role of ${role}, evaluate these responses:
+  return `As a senior technical interviewer for the role of ${role}, conduct a rigorous evaluation of these responses using strict criteria:
 
   Questions and Answers:
   ${questions
@@ -16,39 +16,47 @@ export const generateFeedbackPrompt = (
     )
     .join("\n")}
 
-  Provide a detailed evaluation in this exact JSON format:
+  Provide a detailed, critical evaluation in this exact JSON format:
   {
     "interviewSummary": {
       "duration": "30 minutes",
       "difficulty": "Intermediate",
       "type": "${role} Technical Interview"
     },
-    "score": <overall score between 0-100>,
-    "strengths": ["<strength1>", "<strength2>", ...],
-    "improvements": ["<improvement1>", "<improvement2>", ...],
+    "score": <strict score between 0-100, deduct points for missing key concepts>,
+    "strengths": ["<specific strength with example>", "<specific strength with example>", ...],
+    "improvements": ["<detailed improvement area with specific example>", "<detailed improvement area with specific example>", ...],
     "skillAnalysis": {
-      "technical": "<detailed technical skill analysis>",
-      "domain": "<domain knowledge analysis>",
-      "methodology": "<methodology and approach analysis>"
+      "technical": "<critical analysis of technical competency with specific examples>",
+      "domain": "<detailed evaluation of domain expertise with specific examples>",
+      "methodology": "<thorough analysis of approach and methodology with specific examples>"
     },
     "softSkills": {
-      "communication": <score 0-100>,
-      "confidence": <score 0-100>,
-      "problemSolving": <score 0-100>
+      "communication": <strict score 0-100>,
+      "confidence": <strict score 0-100>,
+      "problemSolving": <strict score 0-100>
     },
     "questionAnswers": [
       {
         "question": "<question text>",
         "userAnswer": "<user's answer>",
-        "feedback": "<specific feedback for this answer>",
-        "score": <score 0-100>
+        "feedback": "<detailed critique with specific examples of what was missing or could be improved>",
+        "score": <strict score 0-100>
       }
     ],
     "recommendations": {
-      "skillBased": ["<skill recommendation1>", "<skill recommendation2>"],
-      "resources": ["<resource1>", "<resource2>"],
-      "interviewTips": ["<tip1>", "<tip2>"]
+      "skillBased": ["<specific skill to improve with actionable steps>", "<specific skill to improve with actionable steps>"],
+      "resources": ["<specific resource with description>", "<specific resource with description>"],
+      "interviewTips": ["<specific interview technique to improve>", "<specific interview technique to improve>"]
     },
-    "overallFeedback": "<comprehensive feedback paragraph>"
-  }`;
+    "overallFeedback": "<comprehensive, critical feedback paragraph highlighting specific areas for improvement>"
+  }
+
+  Evaluation Guidelines:
+  - Be extremely thorough and critical in the evaluation
+  - Deduct points for any missing key concepts or incomplete answers
+  - Provide specific examples in all feedback
+  - Focus on actionable improvements
+  - Be strict with scoring - a perfect score should be rare
+  - Consider both technical accuracy and communication clarity`;
 };
