@@ -5,16 +5,31 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import InterviewSession from "@/components/InterviewSession";
 import { createGeminiClient } from "@/utils/geminiConfig";
 import { Clipboard } from "lucide-react";
 
 const GEMINI_API_KEY = "AIzaSyAyZXZUJ5irogLkCclIE-1jKhKZKOiedUM";
 
+const difficultyLevels = [
+  { value: "entry", label: "Entry Level (0-2 years)", promptModifier: "basic" },
+  { value: "mid", label: "Mid Level (2-5 years)", promptModifier: "intermediate" },
+  { value: "senior", label: "Senior Level (5+ years)", promptModifier: "advanced" },
+  { value: "lead", label: "Lead Level (8+ years)", promptModifier: "expert" },
+];
+
 const Index = () => {
   const [role, setRole] = useState("");
   const [round, setRound] = useState("");
   const [jobDescription, setJobDescription] = useState("");
+  const [difficulty, setDifficulty] = useState("mid");
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
   const { toast } = useToast();
 
@@ -48,11 +63,13 @@ const Index = () => {
   };
 
   if (isInterviewStarted) {
+    const selectedDifficulty = difficultyLevels.find(d => d.value === difficulty);
     return (
       <InterviewSession
         jobDescription={jobDescription}
         role={role}
         round={round}
+        difficulty={selectedDifficulty?.promptModifier || "intermediate"}
         genAI={createGeminiClient(GEMINI_API_KEY)}
       />
     );
@@ -82,6 +99,25 @@ const Index = () => {
               value={round}
               onChange={(e) => setRound(e.target.value)}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="difficulty">Experience Level</Label>
+            <Select value={difficulty} onValueChange={setDifficulty}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select experience level" />
+              </SelectTrigger>
+              <SelectContent>
+                {difficultyLevels.map((level) => (
+                  <SelectItem key={level.value} value={level.value}>
+                    {level.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-sm text-gray-500 mt-1">
+              This will adjust the difficulty of interview questions
+            </p>
           </div>
 
           <div>

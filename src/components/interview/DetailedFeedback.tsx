@@ -63,13 +63,22 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
   const { toast } = useToast();
 
   const handleDownloadPDF = async () => {
-    const element = document.getElementById('feedback-report');
+    const element = document.getElementById('feedback-content');
     const opt = {
-      margin: 1,
+      margin: [0.5, 0.5],
       filename: 'interview-feedback.pdf',
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        logging: true
+      },
+      jsPDF: { 
+        unit: 'in', 
+        format: 'a4', 
+        orientation: 'portrait'
+      },
+      pagebreak: { mode: 'avoid-all' }
     };
 
     try {
@@ -93,21 +102,20 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <div id="feedback-report">
+      <div className="print:hidden mb-6 flex justify-end space-x-2">
+        <Button variant="outline" onClick={handleDownloadPDF}>
+          <Download className="w-4 h-4 mr-2" />
+          Download PDF
+        </Button>
+        <Button variant="secondary" onClick={handleStartOver}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Start Over
+        </Button>
+      </div>
+
+      <div id="feedback-content">
         <Card className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Interview Feedback Report</h2>
-            <div className="space-x-2">
-              <Button variant="outline" onClick={handleDownloadPDF}>
-                <Download className="w-4 h-4 mr-2" />
-                Download PDF
-              </Button>
-              <Button variant="secondary" onClick={handleStartOver}>
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Start Over
-              </Button>
-            </div>
-          </div>
+          <h2 className="text-2xl font-bold text-center mb-8">Interview Feedback Report</h2>
           
           <FeedbackSummary 
             interviewSummary={feedbackData.interviewSummary}
@@ -124,7 +132,7 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
               <h3 className="text-xl font-semibold text-green-600 mb-2">Strengths</h3>
               <ul className="list-disc pl-6">
                 {feedbackData.strengths.map((strength, index) => (
-                  <li key={index}>{strength}</li>
+                  <li key={index} className="mb-2">{strength}</li>
                 ))}
               </ul>
             </div>
@@ -132,7 +140,7 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
               <h3 className="text-xl font-semibold text-orange-600 mb-2">Areas for Improvement</h3>
               <ul className="list-disc pl-6">
                 {feedbackData.improvements.map((improvement, index) => (
-                  <li key={index}>{improvement}</li>
+                  <li key={index} className="mb-2">{improvement}</li>
                 ))}
               </ul>
             </div>
