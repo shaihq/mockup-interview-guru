@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import InterviewSession from "@/components/InterviewSession";
 import { createGeminiClient } from "@/utils/geminiConfig";
+import { Clipboard } from "lucide-react";
 
 const GEMINI_API_KEY = "AIzaSyAyZXZUJ5irogLkCclIE-1jKhKZKOiedUM";
 
@@ -27,6 +28,23 @@ const Index = () => {
       return;
     }
     setIsInterviewStarted(true);
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setJobDescription(text);
+      toast({
+        title: "Success",
+        description: "Job description pasted successfully",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to paste from clipboard",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isInterviewStarted) {
@@ -68,13 +86,24 @@ const Index = () => {
 
           <div>
             <Label htmlFor="jd">Job Description</Label>
-            <Textarea
-              id="jd"
-              placeholder="Paste the job description here..."
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              className="min-h-[200px]"
-            />
+            <div className="relative">
+              <Textarea
+                id="jd"
+                placeholder="Paste the job description here..."
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                className="min-h-[200px]"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="absolute right-2 top-2"
+                onClick={handlePaste}
+              >
+                <Clipboard className="w-4 h-4 mr-2" />
+                Paste
+              </Button>
+            </div>
           </div>
 
           <Button
