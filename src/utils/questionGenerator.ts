@@ -33,51 +33,83 @@ export const generateInterviewQuestions = async (
   - Past project experiences
   - Decision-making processes
   
-  Format the response as a JSON array with this exact structure:
-  [{"question": "Detailed question here", "answer": "Comprehensive answer including evaluation criteria"}]
+  Format the response EXACTLY as a JSON array with this structure:
+  [
+    {
+      "question": "detailed question text",
+      "answer": "comprehensive answer including key points and evaluation criteria"
+    }
+  ]
   
-  Each answer should include:
+  Each answer MUST include:
   - Key points that must be covered
   - Common pitfalls to avoid
   - Best practices to mention
   - Examples or scenarios to illustrate
-  `;
   
-  const result = await generateWithRetry(model, prompt);
-  const response = await result.response;
-  const text = response.text();
+  DO NOT include any text outside the JSON array.`;
   
-  const jsonMatch = text.match(/\[.*\]/s);
-  if (!jsonMatch) {
-    throw new Error("No valid JSON array found in response");
+  try {
+    const result = await generateWithRetry(model, prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    if (!text) {
+      throw new Error("Empty response received from the API");
+    }
+
+    // Find the JSON array in the response using a more robust regex
+    const jsonMatch = text.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (!jsonMatch) {
+      console.error("Raw API response:", text);
+      throw new Error("No valid JSON array found in response");
+    }
+    
+    const cleanedText = jsonMatch[0]
+      .replace(/[\n\r\t]/g, ' ')
+      .replace(/,\s*]/g, ']')
+      .replace(/\s+/g, ' ')
+      .trim();
+    
+    const parsedQuestions = JSON.parse(cleanedText);
+    
+    if (!Array.isArray(parsedQuestions)) {
+      throw new Error("Response is not an array");
+    }
+    
+    // Validate each question object
+    const validQuestions = parsedQuestions
+      .filter((q): q is Question => {
+        const isValid = 
+          typeof q === 'object' && 
+          q !== null && 
+          typeof q.question === 'string' && 
+          typeof q.answer === 'string' &&
+          q.question.trim() !== '' && 
+          q.answer.trim() !== '';
+        
+        if (!isValid) {
+          console.warn("Invalid question object:", q);
+        }
+        return isValid;
+      })
+      .slice(0, questionCount);
+    
+    if (validQuestions.length === 0) {
+      console.error("Parsed response:", parsedQuestions);
+      throw new Error("No valid questions found in response");
+    }
+    
+    if (validQuestions.length < questionCount) {
+      console.warn(`Only generated ${validQuestions.length} valid questions out of ${questionCount} requested`);
+    }
+    
+    return validQuestions;
+  } catch (error) {
+    console.error("Error in question generation:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to generate questions: ${error.message}`);
+    }
+    throw new Error("Failed to generate questions");
   }
-  
-  const cleanedText = jsonMatch[0]
-    .replace(/[\n\r\t]/g, ' ')
-    .replace(/,\s*]/g, ']')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  const parsedQuestions = JSON.parse(cleanedText);
-  
-  if (!Array.isArray(parsedQuestions)) {
-    throw new Error("Response is not an array");
-  }
-  
-  const validQuestions = parsedQuestions
-    .filter(q => 
-      typeof q === 'object' && 
-      q !== null && 
-      typeof q.question === 'string' && 
-      typeof q.answer === 'string' &&
-      q.question.trim() !== '' && 
-      q.answer.trim() !== ''
-    )
-    .slice(0, questionCount);
-  
-  if (validQuestions.length === 0) {
-    throw new Error("No valid questions found in response");
-  }
-  
-  return validQuestions;
 };
