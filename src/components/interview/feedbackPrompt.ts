@@ -14,9 +14,13 @@ export const generateFeedbackPrompt = (
     Expected Answer: ${q.answer}
     
     Evaluation Criteria:
-    - Technical Accuracy (40%): Assess correctness and depth of technical knowledge
-    - Problem-Solving (30%): Evaluate approach and methodology
-    - Communication (30%): Judge clarity, structure, and professionalism
+    - Technical Accuracy (35%): Assess correctness and depth of technical knowledge
+    - Problem-Solving (25%): Evaluate approach, methodology, and critical thinking
+    - Communication (40%): Evaluate based on:
+      * Clarity & Structure (15%): How well-organized and clear the response is
+      * Technical Communication (10%): Ability to explain complex concepts
+      * Professionalism (10%): Tone, formality, and appropriateness
+      * Completeness (5%): Thoroughness of response
   `
     )
     .join("\n")}
@@ -43,15 +47,19 @@ export const generateFeedbackPrompt = (
       "methodology": "<thorough analysis of approach with specific improvements>"
     },
     "softSkills": {
-      "communication": <score 0-100 with strict penalties for unclear explanations>,
-      "confidence": <score 0-100 based on answer assertiveness and accuracy>,
-      "problemSolving": <score 0-100 with emphasis on structured approach>
+      "communication": <score 0-100 based on clarity, structure, and completeness of responses>,
+      "articulation": <score 0-100 based on ability to explain technical concepts clearly>,
+      "problemSolving": <score 0-100 with emphasis on structured approach>,
+      "professionalCommunication": <score 0-100 based on tone and formality>,
+      "adaptability": <score 0-100 based on flexibility in approach to different questions>,
+      "detailOrientation": <score 0-100 based on thoroughness and precision in responses>
     },
     "questionAnswers": [
       {
         "question": "<question text>",
         "userAnswer": "<user's answer>",
         "feedback": "<specific, actionable feedback with examples of better responses>",
+        "communicationFeedback": "<specific feedback on how the answer was communicated>",
         "score": <strict score 0-100>
       }
     ],
