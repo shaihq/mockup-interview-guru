@@ -1,60 +1,53 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { generateWithRetry } from "@/utils/geminiConfig";
-
-interface Question {
-  question: string;
-  answer: string;
-}
+import { generateWithRetry } from "./geminiConfig";
 
 export const generateInterviewQuestions = async (
   genAI: GoogleGenerativeAI,
   jobDescription: string,
-  role: string
-): Promise<Question[]> => {
+  role: string,
+  difficulty: string = "mid"
+) => {
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-  
-  const prompt = `You are an interviewer for a ${role} position.
-  Based on this job description: "${jobDescription}"
-  
-  Generate 5 relevant technical interview questions with their ideal answers.
-  Format the response as a JSON array with this exact structure:
-  [{"question": "First question here", "answer": "First answer here"},{"question": "Second question here", "answer": "Second answer here"}]`;
-  
-  const result = await generateWithRetry(model, prompt);
-  const response = await result.response;
-  const text = response.text();
-  
-  const jsonMatch = text.match(/\[.*\]/s);
-  if (!jsonMatch) {
-    throw new Error("No valid JSON array found in response");
+
+  const difficultyPrompts = {
+    entry: "Focus on fundamental concepts and basic scenarios. Questions should be suitable for candidates with 0-2 years of experience.",
+    mid: "Include moderate complexity scenarios. Questions should be suitable for candidates with 3-5 years of experience.",
+    senior: "Include complex scenarios and system design questions. Questions should be suitable for candidates with 6-10 years of experience.",
+    lead: "Focus on leadership, system design, and strategic thinking. Questions should be suitable for candidates with 10+ years of experience.",
+  };
+
+  const prompt = `As an experienced ${role} interviewer, generate 5 interview questions based on this job description:
+
+${jobDescription}
+
+${difficultyPrompts[difficulty as keyof typeof difficultyPrompts]}
+
+Consider these aspects:
+1. Technical knowledge
+2. Problem-solving ability
+3. Design thinking
+4. Communication skills
+5. Past experience
+
+Format each question with an ideal answer for evaluation. Return the response as a JSON array of objects, each with 'question' and 'answer' properties.
+
+The questions should be challenging but answerable in 2-3 minutes each.`;
+
+  try {
+    const result = await generateWithRetry(model, prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Find the JSON array in the response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      throw new Error("No valid JSON found in response");
+    }
+
+    const questions = JSON.parse(jsonMatch[0]);
+    return questions;
+  } catch (error) {
+    console.error("Error in question generation:", error);
+    throw new Error("Failed to generate interview questions");
   }
-  
-  const cleanedText = jsonMatch[0]
-    .replace(/[\n\r\t]/g, ' ')
-    .replace(/,\s*]/g, ']')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  const parsedQuestions = JSON.parse(cleanedText);
-  
-  if (!Array.isArray(parsedQuestions)) {
-    throw new Error("Response is not an array");
-  }
-  
-  const validQuestions = parsedQuestions
-    .filter(q => 
-      typeof q === 'object' && 
-      q !== null && 
-      typeof q.question === 'string' && 
-      typeof q.answer === 'string' &&
-      q.question.trim() !== '' && 
-      q.answer.trim() !== ''
-    )
-    .slice(0, 5);
-  
-  if (validQuestions.length === 0) {
-    throw new Error("No valid questions found in response");
-  }
-  
-  return validQuestions;
 };
