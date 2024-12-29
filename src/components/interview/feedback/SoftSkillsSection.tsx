@@ -12,8 +12,15 @@ const SoftSkillsSection = ({ softSkills }: SoftSkillsSectionProps) => {
     skill: { score: number; feedback: string; examples: string[] }
   ) => (
     <div>
-      <label className="text-sm font-medium">{label}</label>
-      <Progress value={skill.score} className="h-2" />
+      <div className="flex flex-col mb-4">
+        <label className="text-sm font-medium mb-2">{label}</label>
+        <div className="relative w-full">
+          <Progress value={skill.score} className="h-2" />
+          <span className="absolute right-0 -top-6 text-sm">
+            {skill.score}%
+          </span>
+        </div>
+      </div>
       <p className="text-sm text-gray-600 mt-1">{description}</p>
       <p className="text-sm text-gray-700 mt-2">{skill.feedback}</p>
       <div className="mt-2 space-y-1">
