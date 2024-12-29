@@ -67,7 +67,7 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
           {/* Overall Score */}
           <div className="mb-8">
             <div className="flex justify-center mb-4">
-              <div className="relative inline-flex items-center justify-center">
+              <div className="relative inline-flex items-center justify-center w-32 h-32">
                 <Progress
                   value={feedbackData.score}
                   className="w-32 h-32 rounded-full"
@@ -75,7 +75,7 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
                 <span
                   className={`absolute text-4xl font-bold ${getScoreColor(
                     feedbackData.score
-                  )}`}
+                  )} flex items-center justify-center w-full h-full`}
                 >
                   {feedbackData.score}
                 </span>
