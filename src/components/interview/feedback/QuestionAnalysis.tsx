@@ -29,10 +29,6 @@ const QuestionAnalysis = ({ questionAnswers }: QuestionAnalysisProps) => {
           <p className="mb-2 font-medium">{qa.question}</p>
           <p className="mb-2 text-gray-600">Your Answer: {qa.userAnswer}</p>
           <p className="text-sm text-gray-700">Feedback: {qa.feedback}</p>
-          <p className="text-sm text-gray-700">
-            Communication Feedback: {qa.communicationFeedback}
-          </p>
-          <p className="text-sm text-blue-600 mt-2">Tip: {qa.tips}</p>
         </div>
       ))}
     </div>
