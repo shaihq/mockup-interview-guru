@@ -16,20 +16,57 @@ interface QuestionDisplayProps {
 const MAX_CHAR_LIMIT = 500;
 
 const generateTip = (question: string | undefined) => {
-  if (!question) return "Context → Approach → Solution → Impact → Learnings";
+  if (!question) return "";
   
   const questionLower = question.toLowerCase();
-  if (questionLower.includes("design system")) {
-    return "Research → Analysis → Components → Implementation → Testing";
-  } else if (questionLower.includes("user research")) {
-    return "Problem → Methods → Participants → Findings → Actions";
-  } else if (questionLower.includes("workflow")) {
-    return "Current State → Pain Points → Solutions → Validation → Impact";
-  } else if (questionLower.includes("challenge")) {
-    return "Context → Problem → Approach → Solution → Results";
-  } else {
-    return "Context → Approach → Solution → Impact → Learnings";
+  
+  // Design Process Questions
+  if (questionLower.includes("design process") || questionLower.includes("methodology")) {
+    return "Framework: Define → Research → Ideate → Prototype → Test → Iterate";
   }
+  
+  // User Research Questions
+  if (questionLower.includes("user research") || questionLower.includes("usability")) {
+    return "Methods → Participants → Key Findings → Insights → Impact";
+  }
+  
+  // Design System Questions
+  if (questionLower.includes("design system") || questionLower.includes("component")) {
+    return "Problem → Principles → Structure → Implementation → Documentation";
+  }
+  
+  // Collaboration Questions
+  if (questionLower.includes("team") || questionLower.includes("collaborat") || questionLower.includes("stakeholder")) {
+    return "Context → Roles → Communication → Challenges → Resolution";
+  }
+  
+  // Problem-Solving Questions
+  if (questionLower.includes("challenge") || questionLower.includes("problem") || questionLower.includes("difficult")) {
+    return "Situation → Task → Action → Result → Learning";
+  }
+  
+  // Project Questions
+  if (questionLower.includes("project") || questionLower.includes("case study")) {
+    return "Overview → Goals → Process → Outcome → Impact";
+  }
+  
+  // Leadership Questions
+  if (questionLower.includes("lead") || questionLower.includes("manage") || questionLower.includes("mentor")) {
+    return "Role → Vision → Strategy → Execution → Results";
+  }
+  
+  // Technical Questions
+  if (questionLower.includes("technical") || questionLower.includes("tool") || questionLower.includes("software")) {
+    return "Tool Selection → Implementation → Best Practices → Optimization → Results";
+  }
+  
+  // Metrics & Impact Questions
+  if (questionLower.includes("metric") || questionLower.includes("impact") || questionLower.includes("success")) {
+    return "Goals → Metrics → Implementation → Results → Business Impact";
+  }
+  
+  // Default structure for other questions
+  return "Context → Approach → Implementation → Results → Learning";
 };
 
 const QuestionDisplay = ({
