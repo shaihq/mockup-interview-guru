@@ -14,19 +14,13 @@ export const generateFeedbackPrompt = (
     Expected Answer: ${q.answer}
     
     Evaluation Criteria:
-    - Technical Accuracy (30%): Assess correctness and depth of technical knowledge
-    - Problem-Solving (20%): Evaluate approach, methodology, and critical thinking
-    - Communication (50%): Evaluate based on:
+    - Technical Accuracy (35%): Assess correctness and depth of technical knowledge
+    - Problem-Solving (25%): Evaluate approach, methodology, and critical thinking
+    - Communication (40%): Evaluate based on:
       * Clarity & Structure (15%): How well-organized and clear the response is
-      * Technical Communication (15%): Ability to explain complex concepts
+      * Technical Communication (10%): Ability to explain complex concepts
       * Professionalism (10%): Tone, formality, and appropriateness
-      * Completeness (10%): Thoroughness of response
-
-    Communication Assessment Guidelines:
-    - Clarity & Structure: Look for logical flow, clear introduction/conclusion, use of examples
-    - Technical Communication: Evaluate use of proper terminology, ability to simplify complex concepts
-    - Professionalism: Check for appropriate tone, level of formality, and industry-standard language
-    - Completeness: Assess whether all aspects of the question are addressed
+      * Completeness (5%): Thoroughness of response
   `
     )
     .join("\n")}
@@ -53,36 +47,12 @@ export const generateFeedbackPrompt = (
       "methodology": "<thorough analysis of approach with specific improvements>"
     },
     "softSkills": {
-      "communication": {
-        "score": <score 0-100>,
-        "feedback": "<detailed analysis of communication effectiveness>",
-        "examples": ["<positive example>", "<area for improvement>"]
-      },
-      "articulation": {
-        "score": <score 0-100>,
-        "feedback": "<analysis of technical concept explanation>",
-        "examples": ["<effective explanation>", "<unclear explanation>"]
-      },
-      "problemSolving": {
-        "score": <score 0-100>,
-        "feedback": "<evaluation of structured approach>",
-        "examples": ["<good problem breakdown>", "<missed opportunity>"]
-      },
-      "professionalCommunication": {
-        "score": <score 0-100>,
-        "feedback": "<assessment of tone and formality>",
-        "examples": ["<professional response>", "<informal language used>"]
-      },
-      "adaptability": {
-        "score": <score 0-100>,
-        "feedback": "<analysis of flexibility in responses>",
-        "examples": ["<good adaptation>", "<rigid approach>"]
-      },
-      "detailOrientation": {
-        "score": <score 0-100>,
-        "feedback": "<evaluation of thoroughness>",
-        "examples": ["<comprehensive answer>", "<overlooked detail>"]
-      }
+      "communication": <score 0-100 based on clarity, structure, and completeness of responses>,
+      "articulation": <score 0-100 based on ability to explain technical concepts clearly>,
+      "problemSolving": <score 0-100 with emphasis on structured approach>,
+      "professionalCommunication": <score 0-100 based on tone and formality>,
+      "adaptability": <score 0-100 based on flexibility in approach to different questions>,
+      "detailOrientation": <score 0-100 based on thoroughness and precision in responses>
     },
     "questionAnswers": [
       {
@@ -90,8 +60,7 @@ export const generateFeedbackPrompt = (
         "userAnswer": "<user's answer>",
         "feedback": "<specific, actionable feedback with examples of better responses>",
         "communicationFeedback": "<specific feedback on how the answer was communicated>",
-        "score": <strict score 0-100>,
-        "tips": "<dynamic tips based on question content and user's response style>"
+        "score": <strict score 0-100>
       }
     ],
     "recommendations": {

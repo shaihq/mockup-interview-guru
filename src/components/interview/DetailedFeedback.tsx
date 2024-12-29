@@ -1,15 +1,55 @@
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { useRef } from "react";
 import html2pdf from "html2pdf.js";
-import { FeedbackData } from "./feedback/types";
-import ActionButtons from "./feedback/ActionButtons";
-import InterviewSummarySection from "./feedback/InterviewSummarySection";
-import SkillAnalysisSection from "./feedback/SkillAnalysisSection";
-import SoftSkillsSection from "./feedback/SoftSkillsSection";
-import StrengthsAndImprovements from "./feedback/StrengthsAndImprovements";
-import QuestionAnalysis from "./feedback/QuestionAnalysis";
-import Recommendations from "./feedback/Recommendations";
+
+interface InterviewSummary {
+  duration: string;
+  difficulty: string;
+  type: string;
+}
+
+interface SkillAnalysis {
+  technical: string;
+  domain: string;
+  methodology: string;
+}
+
+interface SoftSkills {
+  communication: number;
+  articulation: number;
+  problemSolving: number;
+  professionalCommunication: number;
+  adaptability: number;
+  detailOrientation: number;
+}
+
+interface QuestionAnswer {
+  question: string;
+  userAnswer: string;
+  feedback: string;
+  communicationFeedback: string;
+  score: number;
+}
+
+interface RecommendationsData {
+  skillBased: string[];
+  resources: string[];
+  interviewTips: string[];
+}
+
+interface FeedbackData {
+  interviewSummary: InterviewSummary;
+  score: number;
+  strengths: string[];
+  improvements: string[];
+  skillAnalysis: SkillAnalysis;
+  softSkills: SoftSkills;
+  questionAnswers: QuestionAnswer[];
+  recommendations: RecommendationsData;
+  overallFeedback: string;
+}
 
 interface DetailedFeedbackProps {
   feedbackData: FeedbackData;
@@ -28,7 +68,7 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
     if (!reportRef.current) return;
 
     const buttons = reportRef.current.querySelectorAll(".action-buttons");
-    buttons.forEach((button) => button.classList.add("hidden"));
+    buttons.forEach((button) => (button.classList.add("hidden")));
 
     const options = {
       margin: 10,
@@ -53,16 +93,37 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <ActionButtons
-        onDownload={handleDownloadPDF}
-        onStartOver={handleStartOver}
-      />
+      {/* Action Buttons at the top */}
+      <div className="mb-6 space-x-4 text-center action-buttons">
+        <Button onClick={handleDownloadPDF} className="mr-4">
+          Download PDF
+        </Button>
+        <Button onClick={handleStartOver} variant="outline">
+          Start New Interview
+        </Button>
+      </div>
 
       <div ref={reportRef}>
         <Card className="p-6">
           <h2 className="text-2xl font-bold mb-6">Interview Feedback Report</h2>
 
-          <InterviewSummarySection summary={feedbackData.interviewSummary} />
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4">Interview Summary</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <p className="font-medium">Duration</p>
+                <p>{feedbackData.interviewSummary.duration}</p>
+              </div>
+              <div>
+                <p className="font-medium">Difficulty</p>
+                <p>{feedbackData.interviewSummary.difficulty}</p>
+              </div>
+              <div>
+                <p className="font-medium">Type</p>
+                <p>{feedbackData.interviewSummary.type}</p>
+              </div>
+            </div>
+          </div>
 
           {/* Overall Score */}
           <div className="mb-8">
@@ -86,14 +147,132 @@ const DetailedFeedback = ({ feedbackData }: DetailedFeedbackProps) => {
             </p>
           </div>
 
-          <SkillAnalysisSection skillAnalysis={feedbackData.skillAnalysis} />
-          <SoftSkillsSection softSkills={feedbackData.softSkills} />
-          <StrengthsAndImprovements
-            strengths={feedbackData.strengths}
-            improvements={feedbackData.improvements}
-          />
-          <QuestionAnalysis questionAnswers={feedbackData.questionAnswers} />
-          <Recommendations recommendations={feedbackData.recommendations} />
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4">Skill Analysis</h3>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium">Technical Skills</h4>
+                <p className="text-gray-700">{feedbackData.skillAnalysis.technical}</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Domain Knowledge</h4>
+                <p className="text-gray-700">{feedbackData.skillAnalysis.domain}</p>
+              </div>
+              <div>
+                <h4 className="font-medium">Methodology</h4>
+                <p className="text-gray-700">{feedbackData.skillAnalysis.methodology}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Soft Skills */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4">Soft Skills Evaluation</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Communication</label>
+                <Progress value={feedbackData.softSkills.communication} className="h-2" />
+                <p className="text-sm text-gray-600 mt-1">Clarity and structure of responses</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Technical Articulation</label>
+                <Progress value={feedbackData.softSkills.articulation} className="h-2" />
+                <p className="text-sm text-gray-600 mt-1">Ability to explain technical concepts</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Problem Solving</label>
+                <Progress value={feedbackData.softSkills.problemSolving} className="h-2" />
+                <p className="text-sm text-gray-600 mt-1">Approach to solving complex problems</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Professional Communication</label>
+                <Progress value={feedbackData.softSkills.professionalCommunication} className="h-2" />
+                <p className="text-sm text-gray-600 mt-1">Tone and professionalism</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Adaptability</label>
+                <Progress value={feedbackData.softSkills.adaptability} className="h-2" />
+                <p className="text-sm text-gray-600 mt-1">Flexibility in approach</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Detail Orientation</label>
+                <Progress value={feedbackData.softSkills.detailOrientation} className="h-2" />
+                <p className="text-sm text-gray-600 mt-1">Thoroughness and precision</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Strengths & Areas for Improvement */}
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div>
+              <h3 className="text-xl font-semibold text-green-600 mb-2">Strengths</h3>
+              <ul className="list-disc pl-6">
+                {feedbackData.strengths.map((strength, index) => (
+                  <li key={index}>{strength}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-orange-600 mb-2">Areas for Improvement</h3>
+              <ul className="list-disc pl-6">
+                {feedbackData.improvements.map((improvement, index) => (
+                  <li key={index}>{improvement}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Question Analysis */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-4">
+              Detailed Question Analysis
+            </h3>
+            {feedbackData.questionAnswers.map((qa, index) => (
+              <div key={index} className="mb-6 p-4 border rounded-lg">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-medium">Question {index + 1}</h4>
+                  <span
+                    className={`px-2 py-1 rounded ${getScoreColor(
+                      qa.score
+                    )} bg-opacity-10`}
+                  >
+                    Score: {qa.score}
+                  </span>
+                </div>
+                <p className="mb-2 font-medium">{qa.question}</p>
+                <p className="mb-2 text-gray-600">Your Answer: {qa.userAnswer}</p>
+                <p className="text-sm text-gray-700">Feedback: {qa.feedback}</p>
+                <p className="text-sm text-gray-700">Communication Feedback: {qa.communicationFeedback}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <h3 className="text-xl font-semibold text-blue-600 mb-4">Skill Recommendations</h3>
+              <ul className="list-disc pl-6">
+                {feedbackData.recommendations.skillBased.map((rec, index) => (
+                  <li key={index}>{rec}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-blue-600 mb-4">Resources</h3>
+              <ul className="list-disc pl-6">
+                {feedbackData.recommendations.resources.map((resource, index) => (
+                  <li key={index}>{resource}</li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-blue-600 mb-4">Interview Tips</h3>
+              <ul className="list-disc pl-6">
+                {feedbackData.recommendations.interviewTips.map((tip, index) => (
+                  <li key={index}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="mt-8 pt-4 border-t text-center">
